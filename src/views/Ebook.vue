@@ -1,25 +1,8 @@
 <template>
   <div class="ebook">
-    <transition name="slide-down">
-      <div class="title-wrapper"
-      v-show="isTitleAndMenuShow">
-        <div class="left">
-          <span class="icon-back icon"></span>
-        </div>
-        <div class="right">
-          <div class="icon-wrapper">
-            <span class="icon-cart icon"></span>
-          </div>
-          <div class="icon-wrapper">
-            <span class="icon-person icon"></span>
-          </div>
-          <div class="icon-wrapper">
-            <span class="icon-more icon"></span>
-          </div>
-        </div>
-      </div>
-    </transition>
-   
+    <title-bar 
+    :isTitleAndMenuShow='isTitleAndMenuShow'></title-bar>
+
     <div class="read-wrapper">
       <div id="read"></div>
       <div class="mask">
@@ -29,24 +12,20 @@
       </div>
     </div>
 
-    <transition name="slide-up">
-      <div class="menu-wrapper"
-        v-show="isTitleAndMenuShow">
-        <div class="icon-wrapper">
-          <span class="icon-menu icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-progress icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-bright icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-a icon">A</span>
-        </div>
-      </div>
-    </transition>
-    
+    <menu-bar 
+    :isTitleAndMenuShow='isTitleAndMenuShow'
+    :fontSizeList='fontSizeList'
+    :defaultFontSize='defaultFontSize'
+    @setFontSize='setFontSize'
+    :themeList='themeList'
+    :defaultTheme='defaultTheme'
+    @setTheme='setTheme'
+    :bookAvailable='bookAvailable'
+    @onProgressChange="onProgressChange"
+    @jumpTo='jumpTo'
+    :navigation='navigation'
+    ref="menubar">
+    </menu-bar>
   </div>
 </template>
 
@@ -54,11 +33,65 @@
 import Epub from 'epubjs'
 const DOWNLOAD_URL = '/books/2018_Book_AgileProcessesInSoftwareEngine.epub'
 
+import TitleBar from 'components/TitleBar'
+import MenuBar from 'components/MenuBar'
+
 export default {
   name: 'Ebook',
+  components: {
+    TitleBar,
+    MenuBar
+  },
   data() {
     return {
-      isTitleAndMenuShow: false
+      isTitleAndMenuShow: false,
+      fontSizeList: [
+        { fontSize: 12},
+        { fontSize: 14},
+        { fontSize: 16},
+        { fontSize: 18},
+        { fontSize: 20},
+        { fontSize: 22},
+        { fontSize: 24}
+      ],
+      defaultFontSize: 16,
+      themeList: [
+        {
+          name: "default",
+          style: {
+            body: {
+              'color': '#000', 'background':'#fff'
+            }
+          }
+        },
+        {
+          name: "eye",
+          style: {
+            body: {
+              'color': '#000', 'background':'#ceeaba'
+            }
+          }
+        },
+        {
+          name: "night",
+          style: {
+            body: {
+              'color': '#fff', 'background':'#000'
+            }
+          }
+        },
+        {
+          name: "gold",
+          style: {
+            body: {
+              'color': '#000', 'background':'rgb(241, 236, 226)'
+            }
+          }
+        },
+      ],
+      defaultTheme: 0,
+      bookAvailable: false,
+      navigation: {},
     }
   },
   methods: {
@@ -70,13 +103,30 @@ export default {
         width: window.innerWidth,
         height: window.innerHeight,
         // 兼容IOS
-        method: 'default',
-        manager: "continuous",
-        // 新路历程，一开始渲染不出来 搜索了老半天都说还需要jszip什么的，有些答案甚至完全不好普，
-        //最后无意间添加了manager属性就可以了，还在迷惑中
+        method: 'default'
+        //注意epubjs版本，太重要了....
       })
       // 通过 Rendtion.display渲染电子书
       this.rendition.display()
+      // 获取theme对象
+      this.themes = this.rendition.themes
+      //设置字体
+      this.setFontSize(this.defaultFontSize)
+      //this.themes.register(name, style)  注册主题
+      //this.themes.select(name)     主题切换
+      this.registerTheme()
+      this.setTheme(this.defaultTheme)
+      //获取locations对象
+      //console.log(this.book.locations)
+      this.book.ready.then(() => {
+        this.navigation = this.book.navigation
+        return this.book.locations.generate()
+      }).then(result => {
+        this.locations = this.book.locations
+        // 标记电子书为解析完毕状态
+        this.bookAvailable = true
+        this.onProgressChange(0)
+      })
     },
     prePage() {
       if(this.rendition) {
@@ -89,8 +139,41 @@ export default {
       }
     },
     tiggleShowTitleAndMenu() {
-      console.log(111);
-      this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
+      this.isTitleAndMenuShow = !this.isTitleAndMenuShow
+      if(!this.isTitleAndMenuShow) {
+        this.$refs.menubar.isSettingShow = false
+      }
+    },
+    setFontSize(fontSize) {
+      this.defaultFontSize = fontSize
+      if(this.themes) {
+        this.themes.fontSize(fontSize + 'px')
+      }
+    },
+    registerTheme() {
+      this.themeList.forEach(theme => {
+        this.themes.register(theme.name, theme.style)
+      })
+    },
+    setTheme(index) {
+      this.defaultTheme = index
+      this.themes.select(this.themeList[index].name)
+    },
+    // 进度条数值0-100
+    onProgressChange(progress) {
+      const percentage = progress / 100
+      const location = percentage > 0 ? this.locations.cfiFromPercentage(percentage) : 0
+      this.rendition.display(location)
+    },
+    // 跳转
+    jumpTo(href) {
+      this.rendition.display(href)
+      this.hideTitleAndMenu()
+    },
+    hideTitleAndMenu() {
+      this.isTitleAndMenuShow = false
+      this.$refs.menubar.hideSetting()
+      this.$refs.menubar.hideContent()
     }
   },
   mounted() {
@@ -105,32 +188,6 @@ export default {
 // 原来一直以为上面这行代码是多余的，main.js不是引用过了吗，原来下面要用到混入mixin -_-
 .ebook {
   position: relative;
-  .title-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1.306667rem;
-    display: flex;
-    z-index: 100;
-    background-color: #fff;
-    box-shadow: 0 .213333rem .213333rem rgba(0, 0, 0, .15);
-    .left {
-      width: 1.6rem;
-      @include center;
-    }
-    .right {
-      flex: 1;
-      display: flex;
-      justify-content: flex-end;
-      .icon-wrapper {
-        width: 1.066667rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-    }
-  }
   .read-wrapper {
     .mask {
       position: absolute;
@@ -148,27 +205,6 @@ export default {
       }
       .right {
         flex: 0 0 2.666667rem;
-      }
-    }
-  }
-  .menu-wrapper {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1.306667rem;
-    display: flex;
-    z-index: 100;
-    background-color: #fff;
-    box-shadow: 0 -.213333rem .213333rem rgba(0, 0, 0, .15);
-    .icon-wrapper {
-      flex: 1;
-      @include center;
-      .icon-progress {
-        font-size: px2rem(28);
-      }
-      .icon-bright {
-        font-size: px2rem(24);
       }
     }
   }

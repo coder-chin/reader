@@ -14,3 +14,11 @@ https://blog.csdn.net/qq_38157825/article/details/114318772
 
 ![](https://gitee.com/bjfuchin/mypic/raw/master/pic/20211001165949.png)
 
+不要用最新版本epubjs
+`npm install epubjs@0.3.71`
+
+
+
+原路径
+
+https://github.com/sam9831/free-ebook-demo

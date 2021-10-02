@@ -14,9 +14,16 @@ $fontSize: 37.5;
   align-items: center;
 }
 
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  // 隐藏滚动条
+}
+
 .icon {
   color: #333;
   font-size: px2rem(20);
+  user-select: none;  
 }
 
 // title进入之前， 移出之后
