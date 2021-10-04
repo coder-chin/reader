@@ -15,6 +15,8 @@ $fontSize: 37.5;
 }
 
 body {
+  user-select: none; 
+  //禁止用户选中
   overflow-x: hidden;
   overflow-y: hidden;
   // 隐藏滚动条
@@ -23,7 +25,6 @@ body {
 .icon {
   color: #333;
   font-size: px2rem(20);
-  user-select: none;  
 }
 
 // title进入之前， 移出之后

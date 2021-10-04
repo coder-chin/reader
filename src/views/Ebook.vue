@@ -1,7 +1,6 @@
 <template>
   <div class="ebook">
-    <title-bar 
-    :isTitleAndMenuShow='isTitleAndMenuShow'></title-bar>
+    <title-bar :isTitleAndMenuShow='isTitleAndMenuShow'/>
 
     <div class="read-wrapper">
       <div id="read"></div>
@@ -30,13 +29,15 @@
 </template>
 
 <script>
-import Epub from 'epubjs'
-const DOWNLOAD_URL = '/books/2018_Book_AgileProcessesInSoftwareEngine.epub'
+import Epub from 'epubjs'  // 导入epubjs
+const DOWNLOAD_URL = '/books/three-bodies.epub' // 下载地址
 
+// title 和 menu 组件
 import TitleBar from 'components/TitleBar'
 import MenuBar from 'components/MenuBar'
 
 export default {
+  // 根据ES6 语法，一下函数可以简写是因为写在了对象中
   name: 'Ebook',
   components: {
     TitleBar,
@@ -44,7 +45,7 @@ export default {
   },
   data() {
     return {
-      isTitleAndMenuShow: false,
+      isTitleAndMenuShow: false,  //是否显示标题栏和菜单
       fontSizeList: [
         { fontSize: 12},
         { fontSize: 14},
@@ -53,8 +54,8 @@ export default {
         { fontSize: 20},
         { fontSize: 22},
         { fontSize: 24}
-      ],
-      defaultFontSize: 16,
+      ],  // 字号列表
+      defaultFontSize: 16, // 默认字号
       themeList: [
         {
           name: "default",
@@ -88,13 +89,14 @@ export default {
             }
           }
         },
-      ],
+      ],     // 主题列表
       defaultTheme: 0,
-      bookAvailable: false,
-      navigation: {},
+      bookAvailable: false, // 是否可读
+      navigation: {},   // 目录
     }
   },
   methods: {
+    // 创建电子书
     createEpub() {
       // 生成book对象
       this.book = new Epub(DOWNLOAD_URL)
@@ -128,48 +130,64 @@ export default {
         this.onProgressChange(0)
       })
     },
+
+    // 前一页
     prePage() {
       if(this.rendition) {
         this.rendition.prev()
       }
     },
+
+    // 后一页
     nextPage() {
       if(this.rendition) {
         this.rendition.next()
       }
     },
+
+    // 是够显示标题栏和菜单
     tiggleShowTitleAndMenu() {
       this.isTitleAndMenuShow = !this.isTitleAndMenuShow
       if(!this.isTitleAndMenuShow) {
         this.$refs.menubar.isSettingShow = false
       }
     },
+
+    // 设置字号,其实全都是epubjs写好的api...
     setFontSize(fontSize) {
       this.defaultFontSize = fontSize
       if(this.themes) {
         this.themes.fontSize(fontSize + 'px')
       }
     },
+
+    // 初始化的时候要注册主题
     registerTheme() {
       this.themeList.forEach(theme => {
         this.themes.register(theme.name, theme.style)
       })
     },
+
+    // 设置主题
     setTheme(index) {
       this.defaultTheme = index
       this.themes.select(this.themeList[index].name)
     },
+
     // 进度条数值0-100
     onProgressChange(progress) {
       const percentage = progress / 100
       const location = percentage > 0 ? this.locations.cfiFromPercentage(percentage) : 0
       this.rendition.display(location)
     },
-    // 跳转
+
+    // 点击目录跳转
     jumpTo(href) {
       this.rendition.display(href)
       this.hideTitleAndMenu()
     },
+
+    // 隐藏标题和菜单
     hideTitleAndMenu() {
       this.isTitleAndMenuShow = false
       this.$refs.menubar.hideSetting()
