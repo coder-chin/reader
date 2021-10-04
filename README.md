@@ -2,6 +2,14 @@
 
 Vue.js + epub.js 实现简单的 epub 电子书阅读器
 
+## 找了好久的Bug
+
+打包后浏览器一篇空白，百度、bing无数，但是都没有解决问题，最终终于找到答案了。。。。
+
+原来是路由的锅，纪念我逝去的几个小时时光.... :candle:
+
+![](https://gitee.com/bjfuchin/mypic/raw/master/pic/20211004214657.png)
+
 ## sass-loader 相关
 
 该项目需要安装 Sass
@@ -71,7 +79,7 @@ module.exports = {
 }
 ```
 
-## Others
+##Others
 
 ### 适配移动端
 
