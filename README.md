@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 目录
 
-![image-20211004200026363](../../AppData/Roaming/Typora/typora-user-images/image-20211004200026363.png)
+![](https://gitee.com/bjfuchin/mypic/raw/master/pic/20211004202616.png)
 
 ##鸣谢
 
