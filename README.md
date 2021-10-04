@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ![](https://gitee.com/bjfuchin/mypic/raw/master/pic/20211004202616.png)
 
-##鸣谢
+## 鸣谢
 
 本项目原创为慕课网Sam老师
 
